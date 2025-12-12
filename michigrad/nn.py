@@ -10,16 +10,40 @@ class Module:
     def parameters(self):
         return []
 
+
+class ReLU(Module):
+    """ 
+        Implementación de la clase ReLU como capa de la red neuronal
+    """
+    def __call__(self, x):
+        return x.relu()
+    
+
+class Tanh(Module):
+    """ 
+        Implementación de la clase Tanh como capa de la red neuronal
+    """
+    def __call__(self, x):
+        return x.tahn()
+    
+class Sigmoid(Module):
+    """ 
+        Implementación de la clase Sigmoid como capa de la red neuronal
+    """
+    def __call__(self, x):
+        return (x.sigmoid())
+    
+
 class Neuron(Module):
 
-    def __init__(self, nin, nonlin=True):
+    def __init__(self, nin): 
         self.w = [Value(random.uniform(-1,1)) for _ in range(nin)]
         self.b = Value(0)
-        self.nonlin = nonlin
+        self.nonlin = False # Por defecto queda lineal
 
     def __call__(self, x):
         act = sum((wi*xi for wi,xi in zip(self.w, x)), self.b)
-        return act.relu() if self.nonlin else act
+        return act
 
     def parameters(self):
         return self.w + [self.b]
@@ -44,7 +68,7 @@ class Layer(Module):
 
 class MLP(Module):
 
-    def __init__(self, nin, nouts):
+    def __init__(self, nin, nouts): # Hasta ahoara el modelo se instancia así: xor = MLP(2, [3,3,1]), pero ahora se busca colocar las capas de activación (Relu, Tanh, Sigmoid) también, osea: xor =  MLP (2, [3, ])
         sz = [nin] + nouts
         self.layers = [Layer(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
 
