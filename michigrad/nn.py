@@ -74,17 +74,16 @@ class Linear(Module):
 
 class MLP(Module):
     """
+    Modificación de la clase MLP para permitir capas de activación personalizadas: ReLU, Tanh, Sigmoid los cuales deben pasarse por parámetro al instanciar el modelo.
     """
-    def __init__(self, nin, nouts, activations=[ReLU()]): # Hasta ahoara el modelo se instancia así: xor = MLP(2, [3,3,1]), pero ahora se busca colocar las capas de activación (Relu, Tanh, Sigmoid) también, osea: xor =  MLP (2, [3, 3, 1], activations=[ReLU(), Tanh(), ReLU()])
+    def __init__(self, nin, nouts, activations=[ReLU()]): # Hasta ahora el modelo se instancia así: xor = MLP(2, [3,3,1]), pero ahora se busca colocar las capas de activación (Relu, Tanh, Sigmoid) también, osea: xor =  MLP (2, [3, 3, 1], activations=[ReLU(), Tanh(), ReLU()])
         sz = [nin] + nouts
-        self.activations = activations 
+        self.activations = activations #Por defecto lo dejamos con ReLU
         self.act = 0
         self.layers = [Linear(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
 
     def __call__(self, x):
         for layer in self.layers:
-            # Por cada capa hay que matchear la capa de activación correspondiente
-            # Si la cantidad de capas de activación es 1, se usa siempre la misma en cambio si hay más de una se itera 
             x = layer(x)
             if len(self.activations) == 1:
                  x = self.activations[0](x)
@@ -93,7 +92,6 @@ class MLP(Module):
                 self.act += 1
         
         self.act = 0
-    
         return x
 
     def parameters(self):
