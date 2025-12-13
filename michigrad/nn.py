@@ -16,6 +16,8 @@ class ReLU(Module):
         Implementación de la clase ReLU como capa de la red neuronal
     """
     def __call__(self, x):
+        if isinstance(x, list):
+            return [xi.relu() for xi in x]
         return x.relu()
     
 
@@ -24,14 +26,18 @@ class Tanh(Module):
         Implementación de la clase Tanh como capa de la red neuronal
     """
     def __call__(self, x):
-        return x.tahn()
+        if isinstance(x, list):
+            return [xi.tanh() for xi in x]
+        return x.tanh()
     
 class Sigmoid(Module):
     """ 
         Implementación de la clase Sigmoid como capa de la red neuronal
     """
     def __call__(self, x):
-        return (x.sigmoid())
+      if isinstance(x, list):
+        return [xi.sigmoid() for xi in x]
+      return (x.sigmoid())
     
 
 class Neuron(Module):
@@ -51,10 +57,10 @@ class Neuron(Module):
     def __repr__(self):
         return f"{'ReLU' if self.nonlin else 'Linear'}Neuron({len(self.w)})"
 
-class Layer(Module):
+class Linear(Module):
 
     def __init__(self, nin, nout, **kwargs):
-        self.neurons = [Neuron(nin, **kwargs) for _ in range(nout)]
+        self.neurons = [Neuron(nin) for _ in range(nout)]
 
     def __call__(self, x):
         out = [n(x) for n in self.neurons]
@@ -67,14 +73,27 @@ class Layer(Module):
         return f"Layer of [{', '.join(str(n) for n in self.neurons)}]"
 
 class MLP(Module):
-
-    def __init__(self, nin, nouts): # Hasta ahoara el modelo se instancia así: xor = MLP(2, [3,3,1]), pero ahora se busca colocar las capas de activación (Relu, Tanh, Sigmoid) también, osea: xor =  MLP (2, [3, ])
+    """
+    """
+    def __init__(self, nin, nouts, activations=[ReLU()]): # Hasta ahoara el modelo se instancia así: xor = MLP(2, [3,3,1]), pero ahora se busca colocar las capas de activación (Relu, Tanh, Sigmoid) también, osea: xor =  MLP (2, [3, 3, 1], activations=[ReLU(), Tanh(), ReLU()])
         sz = [nin] + nouts
-        self.layers = [Layer(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
+        self.activations = activations 
+        self.act = 0
+        self.layers = [Linear(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
 
     def __call__(self, x):
         for layer in self.layers:
+            # Por cada capa hay que matchear la capa de activación correspondiente
+            # Si la cantidad de capas de activación es 1, se usa siempre la misma en cambio si hay más de una se itera 
             x = layer(x)
+            if len(self.activations) == 1:
+                 x = self.activations[0](x)
+            else:
+                x = self.activations[self.act](x)
+                self.act += 1
+        
+        self.act = 0
+    
         return x
 
     def parameters(self):
